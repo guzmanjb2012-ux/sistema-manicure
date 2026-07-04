@@ -1,9 +1,8 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from datetime import date, time
-from typing import Literal
+# 1. IMPORTANTE: Asegúrate de agregar 'Optional' aquí arriba
+from typing import Literal, Optional 
 
-# Definimos los sectores permitidos en San Antonio de los Altos
-# Puedes agregar o modificar los sectores según lo necesites
 SECTORES_PERMITIDOS = Literal[
     "La Morita", 
     "Las Minas", 
@@ -16,7 +15,10 @@ SECTORES_PERMITIDOS = Literal[
 
 class ReservaInvitadoSchema(BaseModel):
     manicurista_id: str = Field(..., description="ID de la manicurista seleccionada")
-    diseno_id: str = Field(..., description="ID del diseño del catálogo elegido")
+    
+    # 2. CAMBIO AQUÍ: Ahora es Optional y su valor por defecto es None
+    diseno_id: Optional[str] = Field(default=None, description="ID del diseño del catálogo elegido")
+    
     cliente_nombre: str = Field(..., min_length=3, max_length=100, description="Nombre de la clienta")
     cliente_telefono: str = Field(..., description="Teléfono de contacto (WhatsApp)")
     cliente_email: EmailStr = Field(..., description="Correo electrónico válido")
@@ -25,7 +27,6 @@ class ReservaInvitadoSchema(BaseModel):
     fecha_cita: date = Field(..., description="Fecha elegida para el servicio")
     hora_cita: time = Field(..., description="Hora elegida para el servicio")
 
-    # Validación personalizada: Evitar que reserven fechas del pasado
     @field_validator("fecha_cita")
     @classmethod
     def validar_fecha(cls, v: date) -> date:
