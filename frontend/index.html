@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nails App - Catálogo y Reservas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Configuración opcional de colores personalizados para combinar con estética de manicure
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rosaPrincipal: '#f472b6',
+                        rosaOscuro: '#db2777',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen">
+
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">💅 San Antonio Nails</h1>
+                <p class="text-xs text-gray-500">Agenda tu cita en San Antonio de los Altos</p>
+            </div>
+            <div id="api-status" class="flex items-center space-x-1 text-xs font-medium text-amber-500">
+                <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span>Conectando API...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <section class="lg:col-span-2 space-y-6">
+            <div class="border-b border-gray-200 pb-2">
+                <h2 class="text-lg font-semibold text-gray-900">1. Selecciona un Diseño</h2>
+                <p class="text-sm text-gray-500">Toca el estilo de uñas que deseas para tu servicio.</p>
+            </div>
+
+            <div id="contenedor-catalogo" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div class="col-span-full text-center py-12 text-gray-500 text-sm">
+                    Cargando los mejores diseños para ti...
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24 space-y-6">
+                <div class="border-b border-gray-100 pb-3">
+                    <h2 class="text-lg font-semibold text-gray-900">2. Tus Datos</h2>
+                    <p class="text-xs text-gray-500">Completa la reserva como cliente invitado.</p>
+                </div>
+
+                <div id="diseno-seleccionado-badge" class="bg-pink-50 border border-pink-200 rounded-xl p-3 flex justify-between items-center hidden">
+                    <div>
+                        <p class="text-xs text-pink-600 font-medium">Diseño elegido:</p>
+                        <p id="badge-titulo" class="text-sm font-bold text-pink-900">-</p>
+                    </div>
+                    <span id="badge-precio" class="text-sm font-black text-pink-700 bg-white px-2 py-1 rounded-lg border border-pink-100">-$</span>
+                </div>
+
+                <form id="form-reserva" class="space-y-4">
+                    <input type="hidden" id="input-manicurista-id" value="64e6dffc-f424-43da-9fad-0ade14ec180b">
+                    <input type="hidden" id="input-diseno-id" value="">
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Nombre Completo</label>
+                        <input type="text" id="cliente_nombre" required minlength="3" maxlength="100" placeholder="Ej. María Alejandra"
+                               class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">WhatsApp</label>
+                            <input type="tel" id="cliente_telefono" required placeholder="Ej. 04121234567"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Correo</label>
+                            <input type="email" id="cliente_email" required placeholder="nombre@gmail.com"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Sector de San Antonio</label>
+                        <select id="sector_san_antonio" required
+                                class="w-full px-3 py-2 border border-gray-200 bg-white rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                            <option value="" disabled selected>Selecciona tu sector...</option>
+                            <option value="La Morita">La Morita</option>
+                            <option value="Las Minas">Las Minas</option>
+                            <option value="El Picacho">El Picacho</option>
+                            <option value="Los Castores">Los Castores</option>
+                            <option value="El Limón">El Limón</option>
+                            <option value="La Suiza">La Suiza</option>
+                            <option value="Zona Industrial">Zona Industrial</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Dirección Detallada / Referencia</label>
+                        <textarea id="direccion_detail" required minlength="10" rows="2" placeholder="Ej. Detrás del CC La Casona, Res. Las Flores, Torre B, Apto 4"
+                                  class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm resize-none"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Fecha</label>
+                            <input type="date" id="fecha_cita" required
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Hora</label>
+                            <input type="time" id="hora_cita" required
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-150 text-sm mt-2">
+                        Reservar Cita y Pagar
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Configuración de Endpoints locales (Uvicorn ejecutándose en puerto 8000)
+        const API_BASE = "http://127.0.0.1:8000/api";
+        const MANICURISTA_ID = document.getElementById("input-manicurista-id").value;
+
+        // Establecer la fecha mínima del calendario al día de hoy de forma automática
+        document.getElementById('fecha_cita').min = new Date().toISOString().split('T')[0];
+
+        /**
+         * 1. VERIFICAR ESTADO DE LA API (Health Check)
+         */
+        async function comprobarApi() {
+            const statusEl = document.getElementById("api-status");
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                if(res.ok) {
+                    statusEl.innerHTML = `<span class="h-2 w-2 rounded-full bg-green-500"></span><span class="text-green-600">API Conectada</span>`;
+                }
+            } catch (error) {
+                statusEl.innerHTML = `<span class="h-2 w-2 rounded-full bg-red-500"></span><span class="text-red-600">API Desconectada</span>`;
+            }
+        }
+
+        /**
+         * 2. CARGAR DISEÑOS DESDE EL BACKEND
+         * Ejecuta un GET /api/disenos filtrado por la manicurista activa
+         */
+        /**
+         * 2. CARGAR DISEÑOS DESDE EL BACKEND (VERSIÓN ULTRA-RESISTENTE)
+         * Consume el endpoint y blinda el renderizado contra datos corruptos o nulos.
+         */
+        /**
+         * 2. CARGAR DISEÑOS (CON DEPURACIÓN ACTIVA)
+         */
+        async function cargarCatalogo() {
+            const contenedor = document.getElementById("contenedor-catalogo");
+            try {
+                // Imprimimos el ID exacto que usará el frontend para buscar
+                console.log("DEBUG 1 - ID de Manicurista usado por el HTML:", MANICURISTA_ID);
+
+                const respuesta = await fetch(`${API_BASE}/disenos?manicurista_id=${MANICURISTA_ID}`);
+                const diseños = await respuesta.json();
+
+                // --- ESTE ES EL CHISMOSO PRINCIPAL ---
+                console.log("DEBUG 2 - ¿Cuántos diseños recibió el HTML real?:", diseños ? diseños.length : 0);
+                console.log("DEBUG 3 - Datos crudos recibidos:", diseños);
+
+                if (!diseños || diseños.length === 0) {
+                    contenedor.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400">No hay diseños cargados en el catálogo aún.</div>`;
+                    return;
+                }
+
+                contenedor.innerHTML = "";
+
+                diseños.forEach((diseno, index) => {
+                    try {
+                        console.log(`DEBUG 4 - Renderizando tarjeta #${index + 1}:`, diseno.titulo);
+
+                        const id = diseno.id || '';
+                        const titulo = diseno.titulo || `Diseño sin título #${index + 1}`;
+                        const descripcion = diseno.descripcion || 'Sin descripción.';
+                        const precio = diseno.precio !== undefined && diseno.precio !== null ? diseno.precio : 0.00;
+                        const imagenPorDefecto = "https://images.unsplash.com/photo-1604654894610-df4906b185af?q=80&w=600&auto=format&fit=crop";
+                        const urlImagen = diseno.url_imagen || imagenPorDefecto;
+
+                        const card = document.createElement("div");
+                        card.className = `bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:border-pink-400 transition-all duration-200 group relative`;
+                        card.onclick = () => seleccionarDiseno(id, titulo, precio, card);
+                        
+                        card.innerHTML = `
+                            <div class="aspect-square bg-gray-100 overflow-hidden relative">
+                                <img src="${urlImagen}" alt="${titulo}" 
+                                     onerror="this.src='${imagenPorDefecto}'"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-xl text-sm font-black text-gray-900 border border-gray-100 shadow-sm">
+                                    $${precio}
+                                </span>
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-gray-900 text-sm group-hover:text-pink-600 transition">${titulo}</h3>
+                                <p class="text-xs text-gray-500 mt-1 line-clamp-2">${descripcion}</p>
+                            </div>
+                            <div class="absolute inset-0 border-2 border-transparent rounded-2xl pointer-events-none selector-border"></div>
+                        `;
+                        
+                        contenedor.appendChild(card);
+
+                    } catch (cardError) {
+                        console.error(`Error en tarjeta ${index}:`, cardError);
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error global:", error);
+                contenedor.innerHTML = `<div class="col-span-full text-center py-12 text-red-500 text-sm">Error: ${error.message}</div>`;
+            }
+        }
+
+        /**
+         * 3. MANEJAR LA SELECCIÓN DE UN DISEÑO
+         * Guarda el ID en el formulario y resalta la tarjeta visualmente
+         */
+        function seleccionarDiseno(id, titulo, precio, elementoCard) {
+            // Guardamos valores en los inputs ocultos
+            document.getElementById("input-diseno-id").value = id;
+
+            // Mostramos y actualizamos el Badge lateral
+            const badge = document.getElementById("diseno-seleccionado-badge");
+            document.getElementById("badge-titulo").innerText = titulo;
+            document.getElementById("badge-precio").innerText = `$${precio}`;
+            badge.classList.remove("hidden");
+
+            // Quitamos el borde resaltado de cualquier otra tarjeta
+            document.querySelectorAll("#contenedor-catalogo > div").forEach(c => {
+                c.querySelector('.selector-border').classList.replace('border-pink-500', 'border-transparent');
+                c.classList.remove('ring-2', 'ring-pink-100');
+            });
+
+            // Resaltamos la tarjeta actual seleccionada
+            elementoCard.querySelector('.selector-border').classList.replace('border-transparent', 'border-pink-500');
+            elementoCard.classList.add('ring-2', 'ring-pink-100');
+        }
+
+        /**
+         * 4. INTERCEPTAR ENVÍO DEL FORMULARIO (POST /api/reservas)
+         */
+        document.getElementById("form-reserva").onsubmit = async (e) => {
+            e.preventDefault(); // Evitamos que la página se recargue solo
+
+            // Construimos el Payload JSON alineado perfectamente con ReservaInvitadoSchema
+            const payload = {
+                manicurista_id: document.getElementById("input-manicurista-id").value,
+                diseno_id: document.getElementById("input-diseno-id").value || null,
+                cliente_nombre: document.getElementById("cliente_nombre").value,
+                cliente_telefono: document.getElementById("cliente_telefono").value,
+                cliente_email: document.getElementById("cliente_email").value,
+                sector_san_antonio: document.getElementById("sector_san_antonio").value,
+                direccion_detail: document.getElementById("direccion_detail").value,
+                fecha_cita: document.getElementById("fecha_cita").value,
+                hora_cita: document.getElementById("hora_cita").value
+            };
+
+            try {
+                const respuesta = await fetch(`${API_BASE}/reservas`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await respuesta.json();
+
+                if (respuesta.status === 201) {
+                    alert("¡Cita pre-reservada con éxito! Redirigiendo al módulo de pago...");
+                    // Redirige al siguiente módulo pasando el ID de la cita por la URL
+                    window.location.href = `pago.html?cita_id=${data.cita.id}`;
+                } else {
+                    // Muestra errores de validación de Pydantic o de colisión de agenda
+                    alert(`Atención: ${data.detail || 'Error desconocido'}`);
+                }
+            } catch (error) {
+                alert(`Error crítico de red al procesar la reserva: ${error.message}`);
+            }
+        };
+
+        // Orquestación de arranque al abrir la página
+        comprobarApi();
+        cargarCatalogo();
+    </script>
+</body>
+</html>
