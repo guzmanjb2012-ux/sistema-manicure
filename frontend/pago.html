@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nails App - Reportar Pago Móvil</title>
+    <!-- Importamos Tailwind CSS desde su CDN oficial -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rosaPrincipal: '#f472b6',
+                        rosaOscuro: '#db2777',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<!-- Aplicamos el fondo cálido bg-pink-50/40 aprobado para mantener la consistencia de marca -->
+<body class="bg-pink-50/40 font-sans text-gray-800 antialiased min-h-screen">
+
+    <!-- HEADER IDÉNTICO AL INDEX -->
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">💅 San Antonio Nails</h1>
+                <p class="text-xs text-gray-500">Módulo de Verificación de Pagos</p>
+            </div>
+            <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-lg">Cita Pre-Reservada</span>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-4 py-8">
+        
+        <!-- CONTENEDOR PRINCIPAL -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+            
+            <!-- ENCABEZADO DE INSTRUCCIONES -->
+            <div class="text-center space-y-2">
+                <div class="h-12 w-12 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">💰</div>
+                <h2 class="text-xl font-bold text-gray-900">Paso Final: Pago Móvil</h2>
+                <p class="text-xs text-gray-500">Por favor, realiza la transferencia y reporta los datos a continuación para asegurar tu cupo.</p>
+            </div>
+
+            <!-- CUADRO DE DATOS BANCARIOS (PAGO MÓVIL VENEZUELA) -->
+            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2">
+                <p class="text-xs font-bold uppercase tracking-wider text-gray-400">Datos de Transferencia:</p>
+                <div class="grid grid-cols-2 gap-y-1.5 text-sm">
+                    <span class="text-gray-500">Banco:</span>
+                    <span class="font-semibold text-gray-900 text-right">Banesco (0134)</span>
+                    
+                    <span class="text-gray-500">Teléfono:</span>
+                    <span class="font-semibold text-gray-900 text-right">0412-1234567</span>
+                    
+                    <span class="text-gray-500">Cédula / RIF:</span>
+                    <span class="font-semibold text-gray-900 text-right">V-12.345.678</span>
+                </div>
+            </div>
+
+            <!-- FORMULARIO DE REPORTE -->
+            <form id="form-pago" class="space-y-4">
+                <!-- El id de la cita se captura de la URL y se almacena aquí de forma oculta -->
+                <input type="hidden" id="input-cita-id" value="">
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Monto Pagado ($)</label>
+                    <input type="number" id="monto_pagado" required step="0.01" min="1" placeholder="Ej. 25.00"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Número de Referencia</label>
+                    <input type="text" id="referencia" required minlength="4" maxlength="12" placeholder="Últimos 4 u 8 dígitos del banco"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                    <p class="text-[10px] text-gray-400 mt-1">Ingresa el código único de confirmación de tu banco.</p>
+                </div>
+
+                <!-- CAMPO COMPLEMENTARIO: Captura / Comprobante -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">Enlace del Capture (Opcional)</label>
+                    <input type="url" id="url_captura" placeholder="https://mi-imagen.com/comprobante.jpg"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm">
+                    <p class="text-[10px] text-gray-400 mt-1">Como es un MVP, puedes dejarlo vacío o pegar cualquier enlace de imagen.</p>
+                </div>
+
+                <!-- BOTÓN DE ACCIÓN PRINCIPAL -->
+                <button type="submit" class="w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-4 rounded-xl shadow-md transition duration-150 text-sm mt-2">
+                    Confirmar Mi Pago
+                </button>
+            </form>
+
+            <!-- ENLACE DE RETORNO POR SEGURIDAD -->
+            <div class="text-center">
+                <a href="index.html" class="text-xs text-gray-400 hover:text-pink-600 transition underline">¿Deseas volver al catálogo?</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==========================================
+         LÓGICA JAVASCRIPT: LECTURA DE PARÁMETROS Y API
+         ========================================== -->
+    <script { data-doc="true" }>
+        // Configuración inicial del endpoint local
+        const API_BASE = "http://127.0.0.1:8000/api";
+
+        /**
+         * DOCUMENTACIÓN INTERNA - URL PARSING:
+         * Esta función se ejecuta inmediatamente al cargar la pantalla. Usa la API 'URLSearchParams' 
+         * para escanear la barra de direcciones buscando la variable '?cita_id=XXXXXXXXX' que le inyectó
+         * la pantalla anterior (index.html). Si no la encuentra, bloquea el formulario para evitar datos huérfanos.
+         */
+        function inicializarModuloPago() {
+            const parametrosUrl = new URLSearchParams(window.location.search);
+            const citaId = parametrosUrl.get("cita_id");
+
+            console.log("DOCUMENTACIÓN: Leyendo cita_id desde los parámetros de la URL ->", citaId);
+
+            if (!citaId) {
+                alert("Error crítico: No se encontró un ID de cita válido. Serás redirigido al catálogo.");
+                window.location.href = "index.html";
+                return;
+            }
+
+            // Asignamos el UUID recuperado al input oculto del formulario
+            document.getElementById("input-cita-id").value = citaId;
+        }
+
+        /**
+         * PROCESAR EL REPORTE DE PAGO (POST /api/pagos)
+         * Envía los datos capturados hacia el backend relacional.
+         */
+        document.getElementById("form-pago").onsubmit = async (e) => {
+            e.preventDefault(); // Detiene la recarga nativa de la página
+
+            // Capturamos el id de la cita guardado previamente
+            const citaId = document.getElementById("input-cita-id").value;
+            
+            // Construimos un placeholder estable para url_captura si la clienta no pone nada,
+            // cumpliendo así con la obligatoriedad de la columna en la BD.
+            const captureIngresado = document.getElementById("url_captura").value;
+            const urlCapturaFinal = captureIngresado.trim() !== "" ? captureIngresado : "https://placehold.co/600x600?text=Comprobante+Pendiente";
+
+            // Payload exacto estructurado según PagoSchema del backend
+            const payloadPago = {
+                cita_id: citaId,
+                referencia: document.getElementById("referencia").value.trim(),
+                monto_pagado: parseFloat(document.getElementById("monto_pagado").value), // ¡Corregido aquí!
+                url_captura: urlCapturaFinal
+            };
+
+            console.log("DOCUMENTACIÓN - Enviando payload a /api/pagos:", payloadPago);
+
+            try {
+                const respuesta = await fetch(`${API_BASE}/pagos`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payloadPago)
+                });
+
+                const resultado = await respuesta.json();
+
+                if (respuesta.status === 201 || respuesta.ok) {
+                    alert("¡Pago registrado y verificado exitosamente!");
+                    // Avanzamos a la última pantalla del flujo pasando el ID para ver el recibo digital
+                    window.location.href = `recibo.html?cita_id=${citaId}`;
+                } else {
+                // Convertimos el objeto en texto plano para poder leer qué dice adentro
+                const errorLegible = typeof resultado.detail === 'object' 
+                ? JSON.stringify(resultado.detail, null, 2) 
+                : resultado.detail;
+        
+                alert(`Atención del Servidor:\n${errorLegible || 'No se pudo procesar tu pago.'}`);
+                }
+            } catch (error) {
+                console.error("Error crítico de comunicación de red:", error);
+                alert(`Error al conectar con el servidor de pagos: ${error.message}`);
+            }
+        };
+
+        // Auto-ejecución al cargar la ventana
+        document.addEventListener("DOMContentLoaded", inicializarModuloPago);
+    </script>
+</body>
+</html>

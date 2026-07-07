@@ -19,12 +19,12 @@
         }
     </script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800 antialiased min-h-screen">
+<body class="bg-stone-100 font-sans text-gray-800 antialiased min-h-screen">
 
     <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
             <div>
-                <h1 class="text-xl font-bold text-gray-900 tracking-tight">💅 San Antonio Nails</h1>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">💅 Andrea Guzman Nails</h1>
                 <p class="text-xs text-gray-500">Agenda tu cita en San Antonio de los Altos</p>
             </div>
             <div id="api-status" class="flex items-center space-x-1 text-xs font-medium text-amber-500">
@@ -191,7 +191,7 @@
                         const titulo = diseno.titulo || `Diseño sin título #${index + 1}`;
                         const descripcion = diseno.descripcion || 'Sin descripción.';
                         const precio = diseno.precio !== undefined && diseno.precio !== null ? diseno.precio : 0.00;
-                        const imagenPorDefecto = "https://images.unsplash.com/photo-1604654894610-df4906b185af?q=80&w=600&auto=format&fit=crop";
+                        const imagenPorDefecto = "https://placehold.co/600x600?text=Dise%C3%B1o+U%C3%B1as";
                         const urlImagen = diseno.url_imagen || imagenPorDefecto;
 
                         const card = document.createElement("div");
@@ -201,7 +201,7 @@
                         card.innerHTML = `
                             <div class="aspect-square bg-gray-100 overflow-hidden relative">
                                 <img src="${urlImagen}" alt="${titulo}" 
-                                     onerror="this.src='${imagenPorDefecto}'"
+                                     onerror="this.onerror=null;this.src='${imagenPorDefecto}'"
                                      class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                 <span class="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-xl text-sm font-black text-gray-900 border border-gray-100 shadow-sm">
                                     $${precio}
