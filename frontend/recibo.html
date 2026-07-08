@@ -78,7 +78,7 @@
         const API_BASE = "http://127.0.0.1:8000/api";
 
         /**
-         * LECTURA Y RENDERIZADO DEL RECIBO (GET /api/reservas/{id})
+         * LECTURA Y RENDERIZADO DEL RECIBO (VERSIÓN BLINDADA)
          */
         async function cargarReciboDigital() {
             const cuerpo = document.getElementById("cuerpo-recibo");
@@ -92,37 +92,59 @@
                 return;
             }
 
-            try {
-                // Hacemos la consulta al endpoint relacional que creamos en el backend
+                try {
                 const respuesta = await fetch(`${API_BASE}/reservas/${citaId}`);
                 
                 if (!respuesta.ok) {
                     throw new Error("La cita no existe o el servidor no responde.");
                 }
 
-                const data = await respuesta.json();
-                console.log("DOCUMENTACIÓN - Datos completos del recibo recibidos:", data);
+                const apiResponse = await respuesta.json();
+                console.log("DATOS REALES RECIBIDOS DEL BACKEND:", apiResponse);
 
-                // Formateamos la fecha a un estilo más humano (Ej: lunes, 15 de marzo)
-                const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                const fechaFormateada = new Date(data.fecha_cita + 'T00:00:00').toLocaleDateString('es-ES', opcionesFecha);
+                // 1. Extraemos el contenedor interno 'datos_recibo' que nos mostraste en consola
+                const data = apiResponse.datos_recibo;
 
-                // Inyectamos el contenido limpio combinando datos de la reserva y del catálogo
+                if (!data) {
+                    throw new Error("Estructura de respuesta inesperada del servidor.");
+                }
+
+                // Formateamos la fecha de manera segura
+                let fechaFormateada = "Fecha no disponible";
+                if (data.fecha_cita) {
+                    const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    fechaFormateada = new Date(data.fecha_cita + 'T00:00:00').toLocaleDateString('es-ES', opcionesFecha);
+                }
+
+                // 2. Ajustamos los nombres de campos exactos según tu consola
+                const codigoCita = data.id ? data.id.substring(0, 8).toUpperCase() : "N/A";
+                const nombreCliente = data.cliente_nombre || "Cliente No Registrado";
+                const telefonoCliente = data.cliente_telefono || "Sin Teléfono";
+                const sectorSanAntonio = data.sector_san_antonio || "No especificado";
+                const direccionDetalle = data.direccion_detalle || "Sin detalles de dirección."; // ¡Corregido a _detalle!
+                const horaCita = data.hora_cita ? data.hora_cita.substring(0, 5) : "--:--";
+                const manicuristaId = data.manicurista_id ? data.manicurista_id.substring(0, 8).toUpperCase() : "N/A";
+                
+                // 3. Ajustado para leer desde 'catalogo_disenos' en lugar de 'diseno'
+                const tituloDiseno = data.catalogo_disenos ? data.catalogo_disenos.titulo : 'Servicio General';
+                const precioDiseno = data.catalogo_disenos ? data.catalogo_disenos.precio : '0.00';
+
+                // Inyectamos el contenido de forma segura
                 cuerpo.innerHTML = `
                     <!-- BLOQUE 1: CÓDIGO DE RESERVA -->
                     <div class="text-center">
                         <p class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Código de Cita</p>
-                        <p class="text-xs font-mono font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-md inline-block mt-1">${data.id.substring(0, 8).toUpperCase()}</p>
+                        <p class="text-xs font-mono font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-md inline-block mt-1">${codigoCita}</p>
                     </div>
 
                     <!-- BLOQUE 2: DETALLES DE LA CLIENTA -->
                     <div class="space-y-2 border-b border-gray-100 pb-4">
                         <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Datos de la Clienta</h3>
                         <div class="text-sm space-y-1">
-                            <p class="font-bold text-gray-900">${data.cliente_nombre}</p>
-                            <p class="text-gray-600 text-xs">📱 ${data.cliente_telefono}</p>
-                            <p class="text-gray-600 text-xs">📍 Sector: <span class="font-semibold text-gray-800">${data.sector_san_antonio}</span></p>
-                            <p class="text-gray-400 text-[11px] italic mt-0.5">${data.direccion_detail}</p>
+                            <p class="font-bold text-gray-900">${nombreCliente}</p>
+                            <p class="text-gray-600 text-xs">📱 ${telefonoCliente}</p>
+                            <p class="text-gray-600 text-xs">📍 Sector: <span class="font-semibold text-gray-800">${sectorSanAntonio}</span></p>
+                            <p class="text-gray-400 text-[11px] italic mt-0.5">${direccionDetalle}</p>
                         </div>
                     </div>
 
@@ -131,7 +153,7 @@
                         <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Agenda</h3>
                         <div class="text-sm">
                             <p class="text-gray-900 font-medium capitalize">📆 ${fechaFormateada}</p>
-                            <p class="text-pink-600 font-bold mt-0.5">⏰ ${data.hora_cita.substring(0, 5)} hrs</p>
+                            <p class="text-pink-600 font-bold mt-0.5">⏰ ${horaCita} hrs</p>
                         </div>
                     </div>
 
@@ -140,22 +162,21 @@
                         <h3 class="text-xs font-bold uppercase text-gray-400 tracking-wider">Servicio Solicitado</h3>
                         <div class="flex justify-between items-start bg-pink-50/50 p-3 rounded-xl border border-pink-100/50">
                             <div>
-                                <p class="text-sm font-bold text-pink-950">${data.diseno ? data.diseno.titulo : 'Servicio General'}</p>
-                                <p class="text-[11px] text-pink-700 mt-0.5">Manicurista Asignada ID: ${data.manicurista_id.substring(0,8).toUpperCase()}</p>
+                                <p class="text-sm font-bold text-pink-950">${tituloDiseno}</p>
+                                <p class="text-[11px] text-pink-700 mt-0.5">Manicurista Asignada ID: ${manicuristaId}</p>
                             </div>
                             <span class="text-base font-black text-pink-900">
-                                $${data.diseno ? data.diseno.precio : '0.00'}
+                                $${precioDiseno}
                             </span>
                         </div>
                     </div>
                 `;
-
             } catch (error) {
                 console.error("Error al cargar recibo:", error);
                 cuerpo.innerHTML = `
                     <div class="text-center py-6 space-y-2">
                         <p class="text-red-500 text-sm font-semibold">No pudimos procesar tu recibo digital.</p>
-                        <p class="text-xs text-gray-400">Verifica que tu backend esté corriendo y que la base de datos tenga guardada esta cita.</p>
+                        <p class="text-xs text-gray-400">Error: ${error.message}</p>
                     </div>
                 `;
             }

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>San Antonio Nails - Panel Administrativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-pink-50/40 font-sans text-gray-800 antialiased min-h-screen">
+
+    <!-- BARRA DE NAVEGACIÓN -->
+    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">💅 Panel de Control</h1>
+                <p class="text-xs text-gray-500">Gestión de Citas y Verificación de Pagos</p>
+            </div>
+            
+            <!-- CONTROLES DE FILTRO (OCULTOS HASTA LOGUEARSE) -->
+            <div id="filtros-header" class="hidden flex flex-wrap items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
+                <!-- Selector de Manicurista -->
+                <div class="flex items-center space-x-1">
+                    <label for="filtro-manicurista" class="text-[10px] font-bold text-gray-500 uppercase">Manicurista:</label>
+                    <select id="filtro-manicurista" onchange="cargarCitas()"
+                            class="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-gray-700 bg-white">
+                        <option value="64e6dffc-f424-43da-9fad-0ade14ec180b" selected>Manicurista Principal</option>
+                        <option value="00000000-0000-0000-0000-000000000000">Personal de Respaldo</option>
+                    </select>
+                </div>
+
+                <!-- Selector de Fecha -->
+                <div class="flex items-center space-x-1">
+                    <label for="filtro-fecha" class="text-[10px] font-bold text-gray-500 uppercase">Día:</label>
+                    <input type="date" id="filtro-fecha" onchange="cargarCitas()"
+                           class="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-gray-700 bg-white">
+                </div>
+
+                <!-- Botón Actualizar -->
+                <button onclick="cargarCitas()" class="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
+                    🔄 Sincronizar
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        
+        <!-- CAPA DE SEGURIDAD INTERNA (LOGIN) -->
+        <div id="seccion-login" class="max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 border border-gray-100 mt-12 space-y-4">
+            <div class="text-center">
+                <span class="text-3xl">🔒</span>
+                <h2 class="text-lg font-bold text-gray-800 mt-2">Acceso Restringido</h2>
+                <p class="text-xs text-gray-400">Ingresa la clave maestra de la manicurista</p>
+            </div>
+            <div>
+                <input type="password" id="clave-maestra" placeholder="Introduce la contraseña" 
+                       class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm text-center">
+            </div>
+            <button onclick="verificarAcceso()" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-xl text-sm transition">
+                Entrar al Panel
+            </button>
+        </div>
+
+        <!-- PANEL DE CONTROL PRINCIPAL (OCULTO POR DEFECTO) -->
+        <div id="seccion-panel" class="hidden space-y-6">
+            
+            <!-- TARJETAS DE MÉTRICAS RÁPIDAS -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400 font-bold uppercase">Total Citas</p>
+                        <p id="metrica-total" class="text-2xl font-black text-gray-900">0</p>
+                    </div>
+                    <span class="text-2xl bg-pink-50 p-2 rounded-lg">📅</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400 font-bold uppercase">Por Confirmar</p>
+                        <p id="metrica-pendientes" class="text-2xl font-black text-amber-600">0</p>
+                    </div>
+                    <span class="text-2xl bg-amber-50 p-2 rounded-lg">⏳</span>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+                    <div>
+                        <p class="text-xs text-gray-400 font-bold uppercase">Confirmadas</p>
+                        <p id="metrica-confirmadas" class="text-2xl font-black text-emerald-600">0</p>
+                    </div>
+                    <span class="text-2xl bg-emerald-50 p-2 rounded-lg">✅</span>
+                </div>
+            </div>
+
+            <!-- CONTENEDOR DE LA TABLA -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-500">
+                                <th class="p-4">Clienta</th>
+                                <th class="p-4">Ubicación</th>
+                                <th class="p-4">Fecha / Hora</th>
+                                <th class="p-4">Diseño elegido</th>
+                                <th class="p-4">Estado</th>
+                                <th class="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-citas" class="divide-y divide-gray-100 text-sm">
+                            <!-- Inyección dinámica de las filas -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- LOGICA JAVASCRIPT -->
+    <script>
+        const API_BASE = "http://127.0.0.1:8000/api";
+        const CLAVE_VALIDA = "sanantonio2026";
+
+        // Control de autenticación e inicialización de filtros obligatorios
+        function verificarAcceso() {
+            const inputClave = document.getElementById("clave-maestra").value;
+            if (inputClave === CLAVE_VALIDA) {
+                document.getElementById("seccion-login").classList.add("hidden");
+                document.getElementById("seccion-panel").classList.remove("hidden");
+                document.getElementById("filtros-header").classList.remove("hidden");
+                
+                // Forzamos la fecha de hoy por defecto en el input tipo date
+                const hoy = new Date().toISOString().split('T')[0];
+                document.getElementById("filtro-fecha").value = hoy;
+                
+                cargarCitas();
+            } else {
+                alert("Contraseña incorrecta. Inténtalo de nuevo.");
+            }
+        }
+
+        // Cargar citas filtradas pasando de forma dinámica los Query Parameters obligatorios
+        async function cargarCitas() {
+            const tbody = document.getElementById("tabla-citas");
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Consultando base de datos...</td></tr>`;
+
+            // Extraemos los valores seleccionados en los selectores del header
+            const fechaSeleccionada = document.getElementById("filtro-fecha").value;
+            const manicuristaId = document.getElementById("filtro-manicurista").value;
+
+            try {
+                // Hacemos la llamada pasando los dos parámetros que FastAPI exige (Error 422 resuelto)
+                const respuesta = await fetch(`${API_BASE}/agenda?manicurista_id=${manicuristaId}&fecha=${fechaSeleccionada}`);
+                
+                // Manejo preventivo por si el esquema del backend cambia
+                if (respuesta.status === 422) {
+                    const error422 = await respuesta.json();
+                    console.error("DETALLE DEL ERROR 422:", error422);
+                    alert("Tu API rechazó la solicitud. Revisa la consola.");
+                    return;
+                }
+
+                if (!respuesta.ok) throw new Error("No se pudo obtener la respuesta del servidor.");
+                
+                const data = await respuesta.json();
+                
+                // Mapeo flexible adaptándose a arrays puros o estructuras anidadas
+                const citas = data.agenda || data.citas || (Array.isArray(data) ? data : null); 
+                
+                tbody.innerHTML = "";
+                
+                if (!citas || citas.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500 font-medium">No existen citas agendadas para los filtros seleccionados.</td></tr>`;
+                    document.getElementById("metrica-total").innerText = "0";
+                    document.getElementById("metrica-pendientes").innerText = "0";
+                    document.getElementById("metrica-confirmadas").innerText = "0";
+                    return;
+                }
+
+                let pendientes = 0;
+                let confirmadas = 0;
+
+                citas.forEach(cita => {
+                    if (cita.estado === "pendiente") pendientes++;
+                    if (cita.estado === "confirmada") confirmadas++;
+
+                    let badgeEstado = "";
+                    if (cita.estado === "confirmada") {
+                        badgeEstado = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Confirmada</span>`;
+                    } else if (cita.estado === "pendiente") {
+                        badgeEstado = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Pendiente</span>`;
+                    } else {
+                        badgeEstado = `<span class="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${cita.estado}</span>`;
+                    }
+
+                    // Sincronización exacta con las relaciones mapeadas de Supabase encontradas ayer
+                    const disenoTitulo = cita.catalogo_disenos ? cita.catalogo_disenos.titulo : "Servicio General";
+                    const disenoPrecio = cita.catalogo_disenos ? `$${cita.catalogo_disenos.precio}` : "N/A";
+                    const horaFormateada = cita.hora_cita ? cita.hora_cita.substring(0, 5) : "--:--";
+
+                    const fila = document.createElement("tr");
+                    fila.className = "hover:bg-gray-50/50 transition";
+                    fila.innerHTML = `
+                        <td class="p-4">
+                            <p class="font-bold text-gray-900">${cita.cliente_nombre}</p>
+                            <p class="text-xs text-gray-400">${cita.cliente_telefono} | ${cita.cliente_email}</p>
+                        </td>
+                        <td class="p-4">
+                            <p class="text-gray-700 font-medium">${cita.sector_san_antonio}</p>
+                            <p class="text-[11px] text-gray-400 truncate max-w-[180px]">${cita.direccion_detalle || 'Sin dirección'}</p>
+                        </td>
+                        <td class="p-4">
+                            <p class="text-gray-900">${cita.fecha_cita}</p>
+                            <p class="text-xs text-pink-600 font-bold">${horaFormateada} hrs</p>
+                        </td>
+                        <td class="p-4">
+                            <p class="text-gray-800 font-medium">${disenoTitulo}</p>
+                            <p class="text-xs text-emerald-600 font-bold">${disenoPrecio}</p>
+                        </td>
+                        <td class="p-4">${badgeEstado}</td>
+                        <td class="p-4 text-center space-x-2">
+                            ${cita.estado === 'pendiente' ? `
+                                <button onclick="actualizarEstadoCita('${cita.id}', 'confirmada')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-lg transition font-medium">
+                                    ✓ Confirmar
+                                </button>
+                            ` : ''}
+                            <button onclick="actualizarEstadoCita('${cita.id}', 'cancelada')" class="bg-white hover:bg-red-50 text-red-500 border border-red-200 text-xs px-2.5 py-1 rounded-lg transition font-medium">
+                                ✕ Cancelar
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(fila);
+                });
+
+                // Renderizamos los contadores automáticos
+                document.getElementById("metrica-total").innerText = citas.length;
+                document.getElementById("metrica-pendientes").innerText = pendientes;
+                document.getElementById("metrica-confirmadas").innerText = confirmadas;
+
+            } catch (error) {
+                console.error("Error en panel:", error);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error de conexión: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Modificar el estado de la cita desde las acciones de la tabla
+        async function actualizarEstadoCita(citaId, nuevoEstado) {
+            if (!confirm(`¿Estás seguro de cambiar el estado de esta cita a "${nuevoEstado}"?`)) return;
+
+            try {
+                const respuesta = await fetch(`${API_BASE}/reservas/${citaId}/estado`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+
+                if (respuesta.ok) {
+                    alert(`Cita actualizada a ${nuevoEstado} con éxito.`);
+                    cargarCitas(); 
+                } else {
+                    const err = await respuesta.json();
+                    alert(`Error del servidor: ${err.detail || 'No se pudo cambiar el estado.'}`);
+                }
+            } catch (error) {
+                console.error("Error al actualizar:", error);
+                alert("Error de red al intentar actualizar la cita.");
+            }
+        }
+    </script>
+</body>
+</html>
