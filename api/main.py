@@ -180,3 +180,32 @@ def obtener_detalle_cita(cita_id: str):
             status_code=500, 
             detail=f"Error en el servidor al generar el recibo digital: {str(e)}"
         )
+# ====================================
+# Modifica el campo estado de la cita en la tabla "citas"
+# ====================================
+from pydantic import BaseModel
+
+# Schema para validar el dato que viene del frontend
+class ActualizarEstado(BaseModel):
+    estado: str  # Recibirá "confirmada" o "cancelada"
+
+# Mantener /reservas/ en la URL asegura que no tengas que cambiar nada en admin.html
+@app.patch("/api/reservas/{cita_id}/estado")
+def actualizar_estado_cita(cita_id: str, data: ActualizarEstado):
+    try:
+        # Apuntamos a la tabla "citas" donde sí existe el campo "estado"
+        resultado = supabase.table("citas").update({"estado": data.estado}).eq("id", cita_id).execute()
+
+        # Si la lista de datos devuelta está vacía, es porque el ID no existía
+        if not resultado.data:
+            raise HTTPException(status_code=404, detail="No se encontró la cita especificada en la base de datos.")
+
+        return {
+            "status": "success", 
+            "message": f"El estado de la cita ha sido modificado a '{data.estado}' correctamente."
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al actualizar en Supabase: {str(e)}")
