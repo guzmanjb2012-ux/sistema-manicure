@@ -4,6 +4,7 @@ from api.schemas import ReservaInvitadoSchema, DisenoCreateSchema, PagoCreateSch
 from api.database import supabase
 from typing import Optional
 from datetime import date 
+from .notificaciones import enviar_correo_notificacion
 
 app = FastAPI(
     title="Sistema de Reservas - Manicure API",
@@ -45,6 +46,21 @@ def crear_reserva_invitado(reserva: ReservaInvitadoSchema):
         }
         resultado = supabase.table("citas").insert(data_cita).execute()
         cita_creada = resultado.data[0]
+
+        # Enviar notificación al cliente (siempre que la función esté disponible)
+        try:
+            enviar_correo_notificacion(
+                email_destino=reserva.cliente_email,
+                cliente_nombre=reserva.cliente_nombre,
+                fecha=str(reserva.fecha_cita),
+                hora=str(reserva.hora_cita),
+                diseno=reserva.diseno_id,
+                estado="pendiente"
+            )
+        except Exception:
+            # No bloquear la creación de la cita si falla el envío de correo
+            pass
+
         return {
             "status": "success",
             "message": "¡Cita reservada exitosamente en San Antonio de los Altos!",

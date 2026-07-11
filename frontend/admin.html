@@ -3,247 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Antonio Nails - Panel Administrativo</title>
+    <title>Panel Administrativo - San Antonio Nails</title>
+    <!-- Tailwind CSS para todo el diseño visual -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-pink-50/40 font-sans text-gray-800 antialiased min-h-screen">
+<body class="bg-pink-50 min-h-screen font-sans">
 
-    <!-- BARRA DE NAVEGACIÓN -->
-    <header class="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">💅 Panel de Control</h1>
-                <p class="text-xs text-gray-500">Gestión de Citas y Verificación de Pagos</p>
+    <!-- ========================================== -->
+    <!-- 1. PANTALLA DE CONTROL DE ACCESO (LOGIN) -->
+    <!-- ========================================== -->
+    <div id="pantallaLogin" class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full border border-pink-100">
+            <div class="text-center mb-6">
+                <span class="text-4xl">💅</span>
+                <h1 class="text-2xl font-bold text-gray-800 mt-2">Panel Administrativo</h1>
+                <p class="text-gray-500 text-sm mt-1">Ingresa la clave de acceso de la manicurista</p>
             </div>
             
-            <!-- CONTROLES DE FILTRO (OCULTOS HASTA LOGUEARSE) -->
-            <div id="filtros-header" class="hidden flex flex-wrap items-center gap-3 bg-gray-50 p-2 rounded-2xl border border-gray-100">
-                <!-- Selector de Manicurista -->
-                <div class="flex items-center space-x-1">
-                    <label for="filtro-manicurista" class="text-[10px] font-bold text-gray-500 uppercase">Manicurista:</label>
-                    <select id="filtro-manicurista" onchange="cargarCitas()"
-                            class="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-gray-700 bg-white">
-                        <option value="64e6dffc-f424-43da-9fad-0ade14ec180b" selected>Manicurista Principal</option>
-                        <option value="00000000-0000-0000-0000-000000000000">Personal de Respaldo</option>
-                    </select>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-gray-600 mb-1">Contraseña</label>
+                    <input type="password" id="claveAdmin" placeholder="••••••••" 
+                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-center tracking-widest text-lg">
                 </div>
-
-                <!-- Selector de Fecha -->
-                <div class="flex items-center space-x-1">
-                    <label for="filtro-fecha" class="text-[10px] font-bold text-gray-500 uppercase">Día:</label>
-                    <input type="date" id="filtro-fecha" onchange="cargarCitas()"
-                           class="border border-gray-200 rounded-xl px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-400 font-medium text-gray-700 bg-white">
-                </div>
-
-                <!-- Botón Actualizar -->
-                <button onclick="cargarCitas()" class="bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
-                    🔄 Sincronizar
+                <button onclick="verificarAcceso()" 
+                        class="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-pink-100">
+                    Entrar al Sistema
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- ========================================== -->
+    <!-- 2. PANEL PRINCIPAL (OCULTO POR DEFECTO)  -->
+    <!-- ========================================== -->
+    <div id="panelDashboard" class="hidden max-w-6xl mx-auto px-4 py-8">
         
-        <!-- CAPA DE SEGURIDAD INTERNA (LOGIN) -->
-        <div id="seccion-login" class="max-w-md mx-auto bg-white rounded-2xl shadow-md p-6 border border-gray-100 mt-12 space-y-4">
-            <div class="text-center">
-                <span class="text-3xl">🔒</span>
-                <h2 class="text-lg font-bold text-gray-800 mt-2">Acceso Restringido</h2>
-                <p class="text-xs text-gray-400">Ingresa la clave maestra de la manicurista</p>
-            </div>
+        <!-- Encabezado del Dashboard -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
             <div>
-                <input type="password" id="clave-maestra" placeholder="Introduce la contraseña" 
-                       class="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm text-center">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span>📅</span> Agenda de Citas
+                </h2>
+                <p class="text-gray-500 text-sm mt-0.5">Control de solicitudes, pagos y notificaciones de clientes</p>
             </div>
-            <button onclick="verificarAcceso()" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-xl text-sm transition">
-                Entrar al Panel
-            </button>
-        </div>
-
-        <!-- PANEL DE CONTROL PRINCIPAL (OCULTO POR DEFECTO) -->
-        <div id="seccion-panel" class="hidden space-y-6">
             
-            <!-- TARJETAS DE MÉTRICAS RÁPIDAS -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-xs text-gray-400 font-bold uppercase">Total Citas</p>
-                        <p id="metrica-total" class="text-2xl font-black text-gray-900">0</p>
-                    </div>
-                    <span class="text-2xl bg-pink-50 p-2 rounded-lg">📅</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-xs text-gray-400 font-bold uppercase">Por Confirmar</p>
-                        <p id="metrica-pendientes" class="text-2xl font-black text-amber-600">0</p>
-                    </div>
-                    <span class="text-2xl bg-amber-50 p-2 rounded-lg">⏳</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
-                    <div>
-                        <p class="text-xs text-gray-400 font-bold uppercase">Confirmadas</p>
-                        <p id="metrica-confirmadas" class="text-2xl font-black text-emerald-600">0</p>
-                    </div>
-                    <span class="text-2xl bg-emerald-50 p-2 rounded-lg">✅</span>
-                </div>
-            </div>
+            <!-- Selector Dinámico de Manicurista y Fecha -->
+<div class="flex flex-col sm:flex-row items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200">
+    <!-- Selector de Manicurista -->
+    <div class="flex items-center gap-1 sm:border-r sm:border-gray-200 sm:pr-3">
+        <label class="text-xs font-bold uppercase text-gray-500 px-2" for="filtroManicurista">Manicurista:</label>
+        <select id="filtroManicurista" onchange="cargarCitas()" 
+                class="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 cursor-pointer">
+            <option value="1">💅 Manicurista Principal</option>
+            <option value="2">💅 Manicurista Secundaria</option>
+            <!-- Puedes añadir un tercero si es necesario: <option value="3">💅 Manicurista Apoyo</option> -->
+        </select>
+    </div>
 
-            <!-- CONTENEDOR DE LA TABLA -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-500">
-                                <th class="p-4">Clienta</th>
-                                <th class="p-4">Ubicación</th>
-                                <th class="p-4">Fecha / Hora</th>
-                                <th class="p-4">Diseño elegido</th>
-                                <th class="p-4">Estado</th>
-                                <th class="p-4 text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-citas" class="divide-y divide-gray-100 text-sm">
-                            <!-- Inyección dinámica de las filas -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+    <!-- Selector de Fecha -->
+    <div class="flex items-center gap-1">
+        <label class="text-xs font-bold uppercase text-gray-500 px-2" for="filtroFecha">Fecha:</label>
+        <input type="date" id="filtroFecha" onchange="cargarCitas()" 
+               class="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400">
+    </div>
+</div>
         </div>
-    </main>
 
-    <!-- LOGICA JAVASCRIPT -->
+        <!-- Tabla de Datos -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-400 text-xs font-bold uppercase border-b border-gray-100">
+                            <th class="p-4">Cliente</th>
+                            <th class="p-4">Teléfono</th>
+                            <th class="p-4">Hora</th>
+                            <th class="p-4">Diseño</th>
+                            <th class="p-4 text-center">Estado</th>
+                            <th class="p-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla" class="divide-y divide-gray-100 text-gray-700">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-gray-400 text-sm">
+                                🔍 Selecciona una fecha arriba para cargar el listado de citas.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. LÓGICA DE CONTROL Y COMUNICACIÓN (JS)   -->
+    <!-- ========================================== -->
     <script>
+        // Configuración de la dirección local de tu API
         const API_BASE = "http://127.0.0.1:8000/api";
-        const CLAVE_VALIDA = "sanantonio2026";
 
-        // Control de autenticación e inicialización de filtros obligatorios
+        // Inicializar la fecha de hoy por comodidad al abrir el panel
+        document.addEventListener("DOMContentLoaded", () => {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById("filtroFecha").value = hoy;
+        });
+
+        // Función para validar la clave de entrada
         function verificarAcceso() {
-            const inputClave = document.getElementById("clave-maestra").value;
-            if (inputClave === CLAVE_VALIDA) {
-                document.getElementById("seccion-login").classList.add("hidden");
-                document.getElementById("seccion-panel").classList.remove("hidden");
-                document.getElementById("filtros-header").classList.remove("hidden");
-                
-                // Forzamos la fecha de hoy por defecto en el input tipo date
-                const hoy = new Date().toISOString().split('T')[0];
-                document.getElementById("filtro-fecha").value = hoy;
-                
-                cargarCitas();
+            const claveIngresada = document.getElementById("claveAdmin").value;
+            
+            // Puedes cambiar "admin123" por la clave de tu preferencia
+            if (claveIngresada === "admin123") {
+                document.getElementById("pantallaLogin").classList.add("hidden");
+                document.getElementById("panelDashboard").classList.remove("hidden");
+                cargarCitas(); // Carga automático el día de hoy al entrar
             } else {
-                alert("Contraseña incorrecta. Inténtalo de nuevo.");
+                alert("❌ Contraseña incorrecta. Inténtalo de nuevo.");
             }
         }
 
-        // Cargar citas filtradas pasando de forma dinámica los Query Parameters obligatorios
+        // Consultar el backend para traer las citas filtradas por fecha
         async function cargarCitas() {
-            const tbody = document.getElementById("tabla-citas");
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-400">Consultando base de datos...</td></tr>`;
+    const fecha = document.getElementById("filtroFecha").value;
+    if (!fecha) return;
 
-            // Extraemos los valores seleccionados en los selectores del header
-            const fechaSeleccionada = document.getElementById("filtro-fecha").value;
-            const manicuristaId = document.getElementById("filtro-manicurista").value;
+    try {
+        const respuesta = await fetch(`${API_BASE}/agenda?fecha=${fecha}`);
+        
+        // ¡OJO AQUÍ! Si el backend responde mal (como el 422), leeremos su mente:
+        if (!respuesta.ok) {
+            const errorBackend = await respuesta.json();
+            console.error("Detalle del error 422:", errorBackend);
+            
+            // Esto nos mostrará en un alert qué parámetro está pidiendo Python
+            alert(`Error ${respuesta.status} de Validación:\n${JSON.stringify(errorBackend.detail)}`);
+            return;
+        }
+        
+        const citas = await respuesta.json();
+        const tabla = document.getElementById("cuerpoTabla");
+        
+        tabla.innerHTML = ""; // Limpiar registros anteriores
 
-            try {
-                // Hacemos la llamada pasando los dos parámetros que FastAPI exige (Error 422 resuelto)
-                const respuesta = await fetch(`${API_BASE}/agenda?manicurista_id=${manicuristaId}&fecha=${fechaSeleccionada}`);
-                
-                // Manejo preventivo por si el esquema del backend cambia
-                if (respuesta.status === 422) {
-                    const error422 = await respuesta.json();
-                    console.error("DETALLE DEL ERROR 422:", error422);
-                    alert("Tu API rechazó la solicitud. Revisa la consola.");
-                    return;
-                }
-
-                if (!respuesta.ok) throw new Error("No se pudo obtener la respuesta del servidor.");
-                
-                const data = await respuesta.json();
-                
-                // Mapeo flexible adaptándose a arrays puros o estructuras anidadas
-                const citas = data.agenda || data.citas || (Array.isArray(data) ? data : null); 
-                
-                tbody.innerHTML = "";
-                
-                if (!citas || citas.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500 font-medium">No existen citas agendadas para los filtros seleccionados.</td></tr>`;
-                    document.getElementById("metrica-total").innerText = "0";
-                    document.getElementById("metrica-pendientes").innerText = "0";
-                    document.getElementById("metrica-confirmadas").innerText = "0";
-                    return;
-                }
-
-                let pendientes = 0;
-                let confirmadas = 0;
-
-                citas.forEach(cita => {
-                    if (cita.estado === "pendiente") pendientes++;
-                    if (cita.estado === "confirmada") confirmadas++;
-
-                    let badgeEstado = "";
-                    if (cita.estado === "confirmada") {
-                        badgeEstado = `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Confirmada</span>`;
-                    } else if (cita.estado === "pendiente") {
-                        badgeEstado = `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">Pendiente</span>`;
-                    } else {
-                        badgeEstado = `<span class="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-full font-semibold">${cita.estado}</span>`;
-                    }
-
-                    // Sincronización exacta con las relaciones mapeadas de Supabase encontradas ayer
-                    const disenoTitulo = cita.catalogo_disenos ? cita.catalogo_disenos.titulo : "Servicio General";
-                    const disenoPrecio = cita.catalogo_disenos ? `$${cita.catalogo_disenos.precio}` : "N/A";
-                    const horaFormateada = cita.hora_cita ? cita.hora_cita.substring(0, 5) : "--:--";
-
-                    const fila = document.createElement("tr");
-                    fila.className = "hover:bg-gray-50/50 transition";
-                    fila.innerHTML = `
-                        <td class="p-4">
-                            <p class="font-bold text-gray-900">${cita.cliente_nombre}</p>
-                            <p class="text-xs text-gray-400">${cita.cliente_telefono} | ${cita.cliente_email}</p>
-                        </td>
-                        <td class="p-4">
-                            <p class="text-gray-700 font-medium">${cita.sector_san_antonio}</p>
-                            <p class="text-[11px] text-gray-400 truncate max-w-[180px]">${cita.direccion_detalle || 'Sin dirección'}</p>
-                        </td>
-                        <td class="p-4">
-                            <p class="text-gray-900">${cita.fecha_cita}</p>
-                            <p class="text-xs text-pink-600 font-bold">${horaFormateada} hrs</p>
-                        </td>
-                        <td class="p-4">
-                            <p class="text-gray-800 font-medium">${disenoTitulo}</p>
-                            <p class="text-xs text-emerald-600 font-bold">${disenoPrecio}</p>
-                        </td>
-                        <td class="p-4">${badgeEstado}</td>
-                        <td class="p-4 text-center space-x-2">
-                            ${cita.estado === 'pendiente' ? `
-                                <button onclick="actualizarEstadoCita('${cita.id}', 'confirmada')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-2.5 py-1 rounded-lg transition font-medium">
-                                    ✓ Confirmar
-                                </button>
-                            ` : ''}
-                            <button onclick="actualizarEstadoCita('${cita.id}', 'cancelada')" class="bg-white hover:bg-red-50 text-red-500 border border-red-200 text-xs px-2.5 py-1 rounded-lg transition font-medium">
-                                ✕ Cancelar
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(fila);
-                });
-
-                // Renderizamos los contadores automáticos
-                document.getElementById("metrica-total").innerText = citas.length;
-                document.getElementById("metrica-pendientes").innerText = pendientes;
-                document.getElementById("metrica-confirmadas").innerText = confirmadas;
-
-            } catch (error) {
-                console.error("Error en panel:", error);
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">Error de conexión: ${error.message}</td></tr>`;
-            }
+        if (citas.length === 0) {
+            tabla.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400 text-sm">No hay citas registradas para esta fecha.</td></tr>`;
+            return;
         }
 
-        // Modificar el estado de la cita desde las acciones de la tabla
+        citas.forEach(cita => {
+            const horaFormateada = cita.hora_cita ? cita.hora_cita.substring(0, 5) : '--:--';
+            const disenoTitulo = cita.diseno_titulo || 'No especificado';
+
+            let claseColorEstado = "bg-amber-100 text-amber-800";
+            if (cita.estado === "confirmada") claseColorEstado = "bg-emerald-100 text-emerald-800";
+            if (cita.estado === "cancelada") claseColorEstado = "bg-red-100 text-red-800";
+
+            let botonConfirmar = "";
+            if (cita.estado === 'pendiente') {
+                botonConfirmar = `<button onclick="actualizarEstadoCita('${cita.id}', 'confirmada')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] px-2.5 py-1 rounded-lg transition font-medium shadow-sm">✓ Confirmar</button>`;
+            }
+
+            let botonCancelar = "";
+            if (cita.estado !== 'cancelada') {
+                botonCancelar = `<button onclick="actualizarEstadoCita('${cita.id}', 'cancelada')" class="bg-white hover:bg-red-50 text-red-500 border border-red-200 text-[11px] px-2.5 py-1 rounded-lg transition font-medium">✕ Cancelar</button>`;
+            }
+
+            const fila = document.createElement("tr");
+            fila.className = "border-b hover:bg-gray-50 transition-colors";
+            fila.innerHTML = `
+                <td class="p-4 font-semibold text-gray-900">${cita.cliente_nombre}</td>
+                <td class="p-4 text-gray-600 text-sm">${cita.cliente_telefono}</td>
+                <td class="p-4 text-gray-700 text-sm font-bold">${horaFormateada} hrs</td>
+                <td class="p-4 text-gray-600 text-sm">${disenoTitulo}</td>
+                <td class="p-4 text-center">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${claseColorEstado}">
+                        ${cita.estado}
+                    </span>
+                </td>
+                <td class="p-4 text-center space-y-1.5">
+                    <div class="flex items-center justify-center gap-1.5">
+                        ${botonConfirmar}
+                        ${botonCancelar}
+                    </div>
+                    <button onclick="dispararWhatsApp('${cita.cliente_telefono}', '${cita.cliente_nombre}', '${cita.fecha_cita}', '${horaFormateada}', '${disenoTitulo}', '${cita.estado}')" 
+                            class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[11px] py-1 px-2 rounded-lg font-bold border border-emerald-200 transition flex items-center justify-center gap-1">
+                        💬 Notificar WhatsApp
+                    </button>
+                </td>
+            `;
+            tabla.appendChild(fila);
+        });
+
+    } catch (error) {
+        console.error("Error cargando citas:", error);
+        alert("Ocurrió un error inesperado en el script del navegador.");
+    }
+}
+
+        // Llamar a la ruta PATCH de FastAPI para modificar el estado de la cita en Supabase
         async function actualizarEstadoCita(citaId, nuevoEstado) {
-            if (!confirm(`¿Estás seguro de cambiar el estado de esta cita a "${nuevoEstado}"?`)) return;
+            if (!confirm(`¿Estás seguro de que deseas marcar esta cita como "${nuevoEstado}"?`)) return;
 
             try {
                 const respuesta = await fetch(`${API_BASE}/reservas/${citaId}/estado`, {
@@ -253,16 +213,39 @@
                 });
 
                 if (respuesta.ok) {
-                    alert(`Cita actualizada a ${nuevoEstado} con éxito.`);
-                    cargarCitas(); 
+                    alert(`¡Perfecto! La cita fue cambiada a: ${nuevoEstado}.`);
+                    cargarCitas(); // Refrescar la tabla en tiempo real
                 } else {
-                    const err = await respuesta.json();
-                    alert(`Error del servidor: ${err.detail || 'No se pudo cambiar el estado.'}`);
+                    const errorBackend = await respuesta.json();
+                    alert(`Error en backend: ${errorBackend.detail || 'Operación rechazada.'}`);
                 }
             } catch (error) {
-                console.error("Error al actualizar:", error);
-                alert("Error de red al intentar actualizar la cita.");
+                console.error("Error en PATCH:", error);
+                alert("Error de conexión al intentar actualizar el estado.");
             }
+        }
+
+        // Función Universal de Enlace para WhatsApp (Evita la alerta de instalación en Windows)
+        function dispararWhatsApp(telefono, nombre, fecha, hora, diseno, estado) {
+            // Convertir números locales de Venezuela (Ej: "04121234567") a internacional ("584121234567")
+            let numeroLimpio = telefono.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            if (numeroLimpio.startsWith('0')) {
+                numeroLimpio = '58' + numeroLimpio.substring(1);
+            }
+            
+            // Generación de plantillas de texto
+            let mensaje = "";
+            if (estado === "confirmada") {
+                mensaje = `¡Hola *${nombre}*! ✨ Te escribo de *San Antonio Nails*. Te confirmo que tu pago fue verificado y tu cita está *CONFIRMADA* para el día *${fecha}* a las *${hora} hrs*. Diseño seleccionado: ${diseno}. ¡Te esperamos! 💅`;
+            } else if (estado === "pendiente") {
+                mensaje = `¡Hola *${nombre}*! ✨ Te escribo de *San Antonio Nails*. Hemos recibido tu solicitud de cita para el día *${fecha}* a las *${hora} hrs* (Diseño: ${diseno}). Estamos procesando la verificación de tu pago para confirmarte a la brevedad. ¡Gracias! 💕`;
+            } else {
+                mensaje = `Hola *${nombre}*, te escribo de *San Antonio Nails*. Te notificamos que tu solicitud de cita para el día *${fecha}* ha sido cancelada en el sistema. Quedamos a tu orden ante cualquier duda.`;
+            }
+
+            // Uso de la API oficial para permitir la opción "Continuar en WhatsApp Web" en computadoras
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroLimpio}&text=${encodeURIComponent(mensaje)}`;
+            window.open(urlWhatsApp, '_blank');
         }
     </script>
 </body>
