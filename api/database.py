@@ -5,9 +5,9 @@ from supabase import create_client, Client
 # 1. Cargamos las variables de entorno desde el archivo .env
 load_dotenv()
 
-# 2. Leemos las credenciales que guardaste
+# 2. Leemos las credenciales que guardaste (soporta local y producción)
 supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
+supabase_key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY")
 
 # 3. Control de seguridad: Si olvidaste configurar el archivo .env, el sistema avisa de inmediato
 if not supabase_url or not supabase_key:
