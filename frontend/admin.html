@@ -237,7 +237,7 @@
             }
 
             // Forzamos el subdominio directo de la aplicación web de escritorio
-            const urlWhatsApp = `https://web.whatsapp.com/send?phone=${numeroLimpio}&text=${encodeURIComponent(mensaje)}`;
+            const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroLimpio}&text=${encodeURIComponent(mensaje)}`;
             window.open(urlWhatsApp, '_blank');
         }
     </script>
